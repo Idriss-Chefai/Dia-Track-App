@@ -2,14 +2,22 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import medecinsRoutes from "./routes/medecinsRoutes.js";
+import patientsRoutes from './routes/patientsRoutes.js';
+import dossierMedicauxRoutes from './routes/dossierMedicauxRoutes.js';
+import traitementsRoutes from './routes/traitementsRoutes.js';
+import rendezVousRoutes from './routes/rendezVousRoutes.js';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json()); // Middleware to parse JSON bodies
 
-// Use the medecins routes
+// Routes
 app.use('/medecins', medecinsRoutes);
+app.use('/patients', patientsRoutes);
+app.use('/dossiers-medicaux', dossierMedicauxRoutes);
+app.use('/traitements', traitementsRoutes);
+app.use('/rendez-vous', rendezVousRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
