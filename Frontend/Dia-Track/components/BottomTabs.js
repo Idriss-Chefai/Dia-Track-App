@@ -1,11 +1,11 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-vector-icons/Feather'; // For tab icons
-import PatientScreen from '../screens/PatientScreen'; // Adjust the path based on your structure
-import ChatScreen from '../screens/ChatScreen'; // Placeholder
-import ProfileScreen from '../screens/ProfileScreen'; // Placeholder
-import CalendarScreen from '../screens/CalendarScreen'; // Placeholder
-import NotificationScreen from '../screens/NotificationScreen'; // New notification screen
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Icon from "react-native-vector-icons/Feather"; // For tab icons
+import DashboardScreen from "../screens/DashboardScreen";
+import ChatScreen from "../screens/ChatScreen";
+import CalendarScreen from "../screens/CalendarScreen";
+import NotificationScreen from "../screens/NotificationScreen";
+import PatientScreen from "../screens/PatientScreen"; // Added PatientScreen
 
 const Tab = createBottomTabNavigator();
 
@@ -14,26 +14,35 @@ const BottomTabs = () => {
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: '#fff', // White background for the tabs
+          backgroundColor: "#fff", // White background for the tabs
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           height: 60,
           borderTopWidth: 0,
           elevation: 5,
-          position: 'absolute',
-          overflow: 'hidden',
+          position: "absolute",
+          overflow: "hidden",
         },
-        tabBarActiveTintColor: '#007bff', // Light blue for active icons
-        tabBarInactiveTintColor: '#b3d9ff', // Lighter blue for inactive icons
+        tabBarActiveTintColor: "#007bff", // Light blue for active icons
+        tabBarInactiveTintColor: "#b3d9ff", // Lighter blue for inactive icons
         headerShown: false,
       }}
     >
       <Tab.Screen
         name="Acceuil"
-        component={PatientScreen}
+        component={DashboardScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Icon name="home" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Patients"
+        component={PatientScreen} // Added PatientScreen to BottomTabs
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="users" color={color} size={size} />
           ),
         }}
       />
@@ -47,15 +56,6 @@ const BottomTabs = () => {
         }}
       />
       <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Icon name="user" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="Calendrier"
         component={CalendarScreen}
         options={{
@@ -64,13 +64,12 @@ const BottomTabs = () => {
           ),
         }}
       />
-      {/* Add the Notifications tab */}
       <Tab.Screen
         name="Notifications"
-        component={NotificationScreen} // New screen for notifications
+        component={NotificationScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Icon name="bell" color={color} size={size} /> // Notification icon
+            <Icon name="bell" color={color} size={size} />
           ),
         }}
       />

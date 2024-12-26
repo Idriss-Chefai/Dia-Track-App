@@ -10,7 +10,7 @@ const ChatScreen = () => {
 
       <View style={styles.content}>
         <Text style={styles.title}>Chat</Text>
-        <Text style={styles.description}>Here you can chat with your doctors or support team.</Text>
+        <Text style={styles.description}>En cours de developpement</Text>
       </View>
     </ScrollView>
   );

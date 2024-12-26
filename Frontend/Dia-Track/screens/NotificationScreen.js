@@ -1,3 +1,4 @@
+// NotificationScreen.js (updated)
 import React, { useState } from 'react';
 import {
   View,
@@ -22,7 +23,7 @@ const NotificationScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleDelete = (id) => {
-    setNotifications(notifications.filter((notification) => notification.id !== id));
+    setNotifications(notifications.filter((notification) => notification.id!== id));
   };
 
   const filteredNotifications = notifications.filter((notification) =>
@@ -39,7 +40,7 @@ const NotificationScreen = () => {
         onPress={() =>
           Alert.alert(
             'Supprimer',
-            'Êtes-vous sûr de vouloir supprimer cette notification ?',
+            'Êtes-vous sûr de vouloir supprimer cette notification?',
             [
               { text: 'Annuler', style: 'cancel' },
               { text: 'Supprimer', onPress: () => handleDelete(item.id) },
@@ -59,10 +60,11 @@ const NotificationScreen = () => {
       
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Icon name="search" size={20} color="#aaa" />
+        <Icon name="search" size={20} color="#fff" />
         <TextInput
           style={styles.searchInput}
           placeholder="Rechercher des notifications..."
+          placeholderTextColor="#ccc"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -85,12 +87,12 @@ const NotificationScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#007bff',
     marginHorizontal: 16,
     marginVertical: 10,
     paddingHorizontal: 12,
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     marginLeft: 8,
-    color: '#333',
+    color: '#fff',
   },
   content: {
     paddingHorizontal: 16,
@@ -111,7 +113,7 @@ const styles = StyleSheet.create({
   notificationItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007bff',
+    backgroundColor: '#f7f7f7',
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
@@ -126,11 +128,12 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     fontSize: 16,
-    color: '#fff',
+    color: '#333',
+    fontWeight: '600',
   },
   notificationTime: {
     fontSize: 12,
-    color: '#d9d9d9',
+    color: '#666',
     marginTop: 4,
   },
   deleteButton: {
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
   noNotificationsText: {
     textAlign: 'center',
     fontSize: 16,
-    color: '#aaa',
+    color: '#ccc',
     marginTop: 20,
   },
 });
