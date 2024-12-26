@@ -1,36 +1,78 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import BottomTabs from './components/BottomTabs'; // Import the BottomTabs component
+import BottomTabs from './components/BottomTabs';
 import PatientInfoScreen from './screens/PatientInfoScreen';
-import AddPatientScreen from './screens/AddPatientScreen'; // Import the AddPatientScreen
-import NotificationScreen from './screens/NotificationScreen'; // Import NotificationScreen
-import AppointmentScreen from './screens/AppointmentScreen'; // Import AppointmentScreen
-import TreatmentScreen from './screens/TreatmentScreen'; // Import TreatmentScreen
-import ChatScreen from './screens/ChatScreen'; // Import ChatScreen
+import AddPatientScreen from './screens/AddPatientScreen';
+import NotificationScreen from './screens/NotificationScreen';
+import AppointmentScreen from './screens/AppointmentScreen';
+import TreatmentScreen from './screens/TreatmentScreen';
+import ChatScreen from './screens/ChatScreen';
+import SplashScreen from './screens/SplashScreen'; // Import your custom splash screen
 
 const Stack = createStackNavigator();
 
 const App = () => {
+  const [isSplashScreenVisible, setIsSplashScreenVisible] = useState(true);
+
+  useEffect(() => {
+    // After 3 seconds, hide the splash screen and show the main app
+    const timer = setTimeout(() => {
+      setIsSplashScreenVisible(false);
+    }, 5000); // Adjust the duration as needed
+
+    // Cleanup the timeout when the component unmounts
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Main">
-        {/* BottomTabs is the entry point */}
-        <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
+      <Stack.Navigator initialRouteName={isSplashScreenVisible ? 'Splash' : 'Main'}>
+        {/* Display the Splash screen first */}
+        <Stack.Screen 
+          name="Splash" 
+          component={SplashScreen} 
+          options={{ headerShown: false }} 
+        />
         
-        {/* PatientInfoScreen can still be accessed via Stack navigation */}
-        <Stack.Screen name="PatientInfo" component={PatientInfoScreen} options={{ headerShown: false }} />
+        {/* Main app navigation after the splash screen */}
+        <Stack.Screen 
+          name="Main" 
+          component={BottomTabs} 
+          options={{ headerShown: false }} 
+        />
         
-        {/* Add the AddPatientScreen to the stack */}
-        <Stack.Screen name="AddPatientScreen" component={AddPatientScreen} options={{ headerShown: true, title: "Ajouter un patient" }} />
-        
-        {/* Add the NotificationScreen to the stack */}
-        <Stack.Screen name="NotificationScreen" component={NotificationScreen} options={{ headerShown: true, title: "Notifications" }} />
-
-        {/* Add the AppointmentScreen, TreatmentScreen, and ChatScreen */}
-        <Stack.Screen name="AppointmentScreen" component={AppointmentScreen} options={{ title: "Appointment" }} />
-        <Stack.Screen name="TreatmentScreen" component={TreatmentScreen} options={{ title: "Treatment" }} />
-        <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ title: "Chat" }} />
+        {/* Other screens */}
+        <Stack.Screen 
+          name="PatientInfo" 
+          component={PatientInfoScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="AddPatientScreen" 
+          component={AddPatientScreen} 
+          options={{ headerShown: false, title: "Ajouter un patient" }} 
+        />
+        <Stack.Screen 
+          name="NotificationScreen" 
+          component={NotificationScreen} 
+          options={{ headerShown: false, title: "Notifications" }} 
+        />
+        <Stack.Screen 
+          name="AppointmentScreen" 
+          component={AppointmentScreen} 
+          options={{ headerShown: false, title: "Appointment" }} 
+        />
+        <Stack.Screen 
+          name="TreatmentScreen" 
+          component={TreatmentScreen} 
+          options={{ headerShown: false, title: "Treatment" }} 
+        />
+        <Stack.Screen 
+          name="ChatScreen" 
+          component={ChatScreen} 
+          options={{ headerShown: false, title: "Chat" }} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

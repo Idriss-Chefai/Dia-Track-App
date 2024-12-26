@@ -1,11 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+import Header from '../components/Header'; // Import the Header component
 
 const ProfileScreen = () => {
   return (
     <View style={styles.container}>
+      <Header 
+        title="Profile" // Add your own back action
+      />
       <Image
-        source={{ uri: 'https://via.placeholder.com/150' }} // Placeholder profile image
+        source={{ uri: 'https://via.placeholder.com/150' }}
         style={styles.profileImage}
       />
       <Text style={styles.name}>John Doe</Text>
@@ -16,6 +20,9 @@ const ProfileScreen = () => {
     </View>
   );
 };
+
+// Styles remain the same
+
 
 const styles = StyleSheet.create({
   container: {

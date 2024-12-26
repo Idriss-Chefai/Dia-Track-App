@@ -3,10 +3,9 @@ import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import DoctorItem from '../components/DoctorItem'; // Assuming this component is the one that displays patient details
 import { useNavigation } from '@react-navigation/native';
+import Header from '../components/Header'; // Import the Header component
 
 const PatientScreen = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-
   // Static list of patients (simulating the ones linked to a doctor)
   const patients = [
     { 
@@ -91,28 +90,27 @@ const PatientScreen = () => {
       },
   ];
 
-  const navigation = useNavigation();
-
-  const handleSearch = (text) => {
-    setSearchQuery(text);
-  };
-
-  const filteredPatients = patients.filter((patient) =>
-    patient.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    patient.surname.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleAddPatient = () => {
-    // Navigate to the AddPatientScreen when the button is pressed
-    navigation.navigate('AddPatientScreen');
-  };
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Patients</Text>
-        </View>
+    const [searchQuery, setSearchQuery] = useState('');
+    const navigation = useNavigation();
+  
+    const handleSearch = (text) => {
+      setSearchQuery(text);
+    };
+  
+    const filteredPatients = patients.filter((patient) =>
+      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      patient.surname.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  
+    const handleAddPatient = () => {
+      navigation.navigate('AddPatientScreen');
+    };
+  
+    return (
+      <View style={styles.container}>
+        <Header 
+          title="Patients" // Add the back navigation
+        />
         <View style={styles.searchContainer}>
           <Icon name="search" size={20} color="#888" style={styles.searchIcon} />
           <TextInput
@@ -122,23 +120,21 @@ const PatientScreen = () => {
             onChangeText={handleSearch}
           />
         </View>
+        <ScrollView style={styles.patientList}>
+          {filteredPatients.map((patient) => (
+            <DoctorItem
+              key={patient.id}
+              doctor={patient}
+            />
+          ))}
+        </ScrollView>
+  
+        <TouchableOpacity style={styles.addPatientButton} onPress={handleAddPatient}>
+          <Icon name="plus" size={35} color="#fff" />
+        </TouchableOpacity>
       </View>
-      <ScrollView style={styles.patientList}>
-        {filteredPatients.map((patient) => (
-          <DoctorItem
-            key={patient.id}
-            doctor={patient} // Pass patient data to the DoctorItem
-          />
-        ))}
-      </ScrollView>
-
-      {/* Floating "Add Patient" button */}
-      <TouchableOpacity style={styles.addPatientButton} onPress={handleAddPatient}>
-        <Icon name="plus" size={35} color="#fff" /> {/* Increased size */}
-      </TouchableOpacity>
-    </View>
-  );
-};
+    );
+  };
 
 const styles = StyleSheet.create({
   container: {
@@ -178,6 +174,8 @@ const styles = StyleSheet.create({
   patientList: {
     flex: 1,
     padding: 16,
+    marginBottom : 40,
+    marginTop : 20,
   },
   addPatientButton: {
     position: 'absolute',

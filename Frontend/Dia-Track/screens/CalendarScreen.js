@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import Header from '../components/Header'; // Import the Header component
 
 const CalendarScreen = () => {
   const [selectedDate, setSelectedDate] = useState('');
@@ -26,8 +27,10 @@ const CalendarScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Your Calendar</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Add the header component */}
+      <Header title="Your Calendar" />
+
       <Calendar
         style={styles.calendar}
         markedDates={{
@@ -88,7 +91,7 @@ const CalendarScreen = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -107,6 +110,7 @@ const styles = StyleSheet.create({
   },
   calendar: {
     marginBottom: 20,
+    marginTop : 50,
   },
   appointmentsContainer: {
     flex: 1,

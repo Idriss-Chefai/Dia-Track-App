@@ -1,12 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import Header from '../components/Header'; // Import the Header component
 
 const ChatScreen = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Chat</Text>
-      <Text style={styles.description}>Here you can chat with your doctors or support team.</Text>
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Add the header component */}
+      <Header title="Chat" />
+
+      <View style={styles.content}>
+        <Text style={styles.title}>Chat</Text>
+        <Text style={styles.description}>Here you can chat with your doctors or support team.</Text>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -14,8 +20,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#e6f7fa', // Light blue background
-    alignItems: 'center',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   title: {
     fontSize: 28,
