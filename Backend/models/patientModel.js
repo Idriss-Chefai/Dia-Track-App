@@ -2,7 +2,22 @@ import pool from '../config/db.js';
 
 export async function afficherPatients() {
   try {
-    const [rows] = await pool.query("SELECT * FROM Patient");
+    const [rows] = await pool.query(`
+      SELECT 
+        p.id AS patient_id,
+        u.prenom AS name,
+        u.nom AS surname,
+        dm.type_diabete AS diabetesType,
+        dm.poids,
+        dm.taille,
+        dm.annee_diagnostic AS dateDiagnostic
+      FROM 
+        Patient p
+      JOIN 
+        User u ON p.id_user = u.id
+      LEFT JOIN 
+        DossierMedical dm ON p.id = dm.id_patient
+    `);
     return rows.length > 0
       ? { data: rows, message: "Liste des patients récupérée avec succès" }
       : { message: "Aucun patient trouvé" };

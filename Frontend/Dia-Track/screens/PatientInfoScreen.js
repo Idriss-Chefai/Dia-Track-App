@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,18 +6,45 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  Pressable
+  ActivityIndicator
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import { LineChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
 import Header from "../components/Header"; // Import the Header component
+import { afficherDonneesGlycemiques } from "../services/donneGlycemiqueService"; // Import the service function
 
 const PatientInfoScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { doctor } = route.params; // Access doctor data passed from previous screen
+
+  const [glucoseReadings, setGlucoseReadings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchGlucoseReadings = async () => {
+      try {
+        const readings = await afficherDonneesGlycemiques(doctor.patient_id);
+        console.log('Réponse de l\'API:', readings); // Ajout de logs pour vérifier la structure
+        if (Array.isArray(readings)) {
+          setGlucoseReadings(readings);
+        } else {
+          console.error('La réponse de l\'API ne contient pas de données valides:', readings);
+          setError('La réponse de l\'API ne contient pas de données valides');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des données glycémiques:', error);
+        setError('Erreur lors du chargement des données glycémiques');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGlucoseReadings();
+  }, [doctor.patient_id]); // Dependency should be doctor.patient_id, not doctor.id
 
   const handleOptionPress = option => {
     // Navigate based on option
@@ -39,18 +66,59 @@ const PatientInfoScreen = () => {
     }
   };
 
-  // Sample data for the glycemic chart
-  const data = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], // X-axis labels
-    datasets: [
-      {
-        data: [85, 90, 80, 95, 88, 92], // Glycemic data
-        strokeWidth: 2 // Line thickness
+  // Préparer les données pour le graphique
+  const prepareChartData = (readings) => {
+    const labels = readings.map(reading => {
+      let combinedDateTime;
+      if (reading.heure) {
+        // Extract the date part from reading.date (YYYY-MM-DD)
+        const datePart = reading.date.split('T')[0];
+        combinedDateTime = `${datePart}T${reading.heure}`;
+      } else {
+        // If reading.heure is not provided, use reading.date as is
+        combinedDateTime = reading.date;
       }
-    ]
+      
+      const date = new Date(combinedDateTime);
+      if (isNaN(date.getTime())) {
+        console.error('Date invalide:', combinedDateTime);
+        return 'Invalid Date';
+      }
+      
+      // Format the date to include both day and time
+      const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
+      const timeOptions = { hour: '2-digit', minute: '2-digit' };
+      const dateString = date.toLocaleDateString([], dateOptions);
+      const timeString = date.toLocaleTimeString([], timeOptions);
+      
+      return `${dateString} ${timeString}`;
+    });
+    
+    const data = readings.map(reading => parseFloat(reading.valeur));
+    return { labels, data };
   };
 
+  // Get the last 5 readings
+  const lastFiveReadings = glucoseReadings.slice(-3);
+  const chartData = prepareChartData(lastFiveReadings);
+
   const screenWidth = Dimensions.get("window").width;
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -60,20 +128,12 @@ const PatientInfoScreen = () => {
       {/* Patient Info */}
       <View style={styles.patientInfo}>
         <Image source={{ uri: doctor.image }} style={styles.patientImage} />
-        <Text
-          style={styles.patientName}
-        >{`${doctor.name} ${doctor.surname}`}</Text>
-        <Text style={styles.patientSpecialty}>
-          {doctor.specialty}
-        </Text>
-        <Text
-          style={styles.patientDiabetesType}
-        >{`Type de Diabète: ${doctor.diabetesType}`}</Text>
+        <Text style={styles.patientName}>{`${doctor.name} ${doctor.surname}`}</Text>
+        <Text style={styles.patientSpecialty}>{doctor.specialty}</Text>
+        <Text style={styles.patientDiabetesType}>{`Type de Diabète: ${doctor.diabetesType}`}</Text>
         <Text style={styles.patientDetails}>{`Poids: ${doctor.poids}`}</Text>
         <Text style={styles.patientDetails}>{`Taille: ${doctor.taille}`}</Text>
-        <Text
-          style={styles.patientDetails}
-        >{`Diagnostiqué: ${doctor.dateDiagnostic}`}</Text>
+        <Text style={styles.patientDetails}>{`Diagnostiqué: ${doctor.dateDiagnostic}`}</Text>
 
         {/* Icons and Actions */}
         <View style={styles.actionIcons}>
@@ -99,28 +159,40 @@ const PatientInfoScreen = () => {
       {/* Glycemic Data Dashboard */}
       <View style={styles.dashboard}>
         <Text style={styles.dashboardTitle}>Données Glycémiques</Text>
-        <LineChart
-          data={data}
-          width={screenWidth - 32} // Adjusting to fit the screen with padding
-          height={200} // Increased the height for the chart
-          chartConfig={{
-            backgroundColor: "#fff",
-            backgroundGradientFrom: "#fff",
-            backgroundGradientTo: "#fff",
-            decimalPlaces: 2,
-            color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`, // Blue color
-            labelColor: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
-            style: {
-              borderRadius: 16
-            },
-            propsForDots: {
-              r: "6",
-              strokeWidth: "2",
-              stroke: "#fff"
-            }
-          }}
-          bezier
-        />
+        {chartData.labels.length > 0 ? (
+          <LineChart
+            data={{
+              labels: chartData.labels,
+              datasets: [
+                {
+                  data: chartData.data,
+                  strokeWidth: 2 // Line thickness
+                }
+              ]
+            }}
+            width={screenWidth - 32} // Adjusting to fit the screen with padding
+            height={250} // Increased the height for the chart
+            chartConfig={{
+              backgroundColor: "#fff",
+              backgroundGradientFrom: "#fff",
+              backgroundGradientTo: "#fff",
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`, // Blue color
+              labelColor: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
+              style: {
+                borderRadius: 16
+              },
+              propsForDots: {
+                r: "6",
+                strokeWidth: "2",
+                stroke: "#fff"
+              }
+            }}
+            bezier
+          />
+        ) : (
+          <Text style={styles.noDataText}>Aucune donnée glycémique disponible</Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -215,7 +287,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#007bff", // Matching the color of the icons
     marginTop: 5,
-    textAlign: "center" // Centering the text under the icon
+    textAlign: "center"
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  errorText: {
+    fontSize: 18,
+    color: "red"
+  },
+  noDataText: {
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center"
   }
 });
 

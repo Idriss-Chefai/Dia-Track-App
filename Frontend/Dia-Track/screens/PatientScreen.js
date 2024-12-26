@@ -1,158 +1,125 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import DoctorItem from '../components/DoctorItem'; // Assuming this component is the one that displays patient details
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 import Header from '../components/Header'; // Import the Header component
+import { getPatients } from '../services/patientService'; // Import the getPatients function
 
 const PatientScreen = () => {
-  // Static list of patients (simulating the ones linked to a doctor)
-  const patients = [
-    { 
-      id: '1', 
-      name: 'Emily', 
-      surname: 'Brown', 
-      diabetesType: 'Type 1', 
-      poids: '70 kg',
-      taille: '1.65 m',
-      dateDiagnostic: 'Mars 2021',
-      image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-    },
-    { 
-      id: '2', 
-      name: 'John', 
-      surname: 'Smith', 
-      diabetesType: 'Type 2', 
-      poids: '85 kg',
-      taille: '1.80 m',
-      dateDiagnostic: 'Juin 2020',
-      image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-    },
-    { 
-      id: '3', 
-      name: 'Sophia', 
-      surname: 'Martinez', 
-      diabetesType: 'Type 1', 
-      poids: '65 kg',
-      taille: '1.60 m',
-      dateDiagnostic: 'Septembre 2022',
-      image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-    },
-    { 
-      id: '4', 
-      name: 'Michael', 
-      surname: 'Johnson', 
-      diabetesType: 'Type 2', 
-      poids: '95 kg',
-      taille: '1.75 m',
-      dateDiagnostic: 'Décembre 2021',
-      image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-    },
-    { 
-        id: '5', 
-        name: 'Sophia', 
-        surname: 'Martinez', 
-        diabetesType: 'Type 1', 
-        poids: '65 kg',
-        taille: '1.60 m',
-        dateDiagnostic: 'Septembre 2022',
-        image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-      },
-      { 
-        id: '6', 
-        name: 'Michael', 
-        surname: 'Johnson', 
-        diabetesType: 'Type 2', 
-        poids: '95 kg',
-        taille: '1.75 m',
-        dateDiagnostic: 'Décembre 2021',
-        image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-      },
-      { 
-        id: '7', 
-        name: 'Sophia', 
-        surname: 'Martinez', 
-        diabetesType: 'Type 1', 
-        poids: '65 kg',
-        taille: '1.60 m',
-        dateDiagnostic: 'Septembre 2022',
-        image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-      },
-      { 
-        id: '8', 
-        name: 'Michael', 
-        surname: 'Johnson', 
-        diabetesType: 'Type 2', 
-        poids: '95 kg',
-        taille: '1.75 m',
-        dateDiagnostic: 'Décembre 2021',
-        image: 'https://th.bing.com/th/id/OIP.xz2vdXtFZl5U-MuxfOHISQHaHa?w=175&h=180&c=7&r=0&o=5&pid=1.7' 
-      },
-  ];
+  const [patients, setPatients] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigation = useNavigation();
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const navigation = useNavigation();
-  
-    const handleSearch = (text) => {
-      setSearchQuery(text);
-    };
-  
-    const filteredPatients = patients.filter((patient) =>
-      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      patient.surname.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  
-    const handleAddPatient = () => {
-      navigation.navigate('AddPatientScreen');
-    };
-  
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchPatients = async () => {
+        try {
+          const fetchedPatients = await getPatients();
+          if (Array.isArray(fetchedPatients)) {
+            setPatients(fetchedPatients);
+          } else {
+            console.error('La réponse de l\'API n\'est pas un tableau:', fetchedPatients);
+            setError('La réponse de l\'API n\'est pas un tableau');
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des patients:', error);
+          setError('Erreur lors du chargement des patients');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchPatients();
+
+      // Return a cleanup function if needed
+      return () => {
+        // Cleanup logic here if necessary
+      };
+    }, []) // Empty dependency array to run only once on focus
+  );
+
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+  };
+
+  const filteredPatients = patients.filter((patient) =>
+    (patient.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
+    (patient.surname?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+  );
+
+  const handleAddPatient = () => {
+    navigation.navigate('AddPatientScreen');
+  };
+
+  if (loading) {
     return (
-      <View style={styles.container}>
-        <Header 
-          title="Patients" // Add the back navigation
-        />
-        <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#888" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher des patients..."
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-        </View>
-        <ScrollView style={styles.patientList}>
-          {filteredPatients.map((patient) => (
-            <DoctorItem
-              key={patient.id}
-              doctor={patient}
-            />
-          ))}
-        </ScrollView>
-  
-        <TouchableOpacity style={styles.addPatientButton} onPress={handleAddPatient}>
-          <Icon name="plus" size={35} color="#fff" />
-        </TouchableOpacity>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
       </View>
     );
-  };
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header title="Patients" />
+      <View style={styles.searchContainer}>
+        <Icon name="search" size={20} color="#888" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Rechercher des patients..."
+          value={searchQuery}
+          onChangeText={handleSearch}
+        />
+      </View>
+      <ScrollView style={styles.patientList}>
+        {filteredPatients.length > 0 ? (
+          filteredPatients.map((patient) => (
+            <DoctorItem
+              key={patient.patient_id}
+              doctor={patient}
+            />
+          ))
+        ) : (
+          <Text style={styles.noPatientsText}>Aucun patient trouvé</Text>
+        )}
+      </ScrollView>
+
+      <TouchableOpacity style={styles.addPatientButton} onPress={handleAddPatient}>
+        <Icon name="plus" size={35} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
   },
-  headerContainer: {
-    backgroundColor: '#007bff',
-    padding: 16,
-  },
-  header: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -161,6 +128,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
     height: 40,
+    marginHorizontal: 16,
+    marginTop: 16,
   },
   searchIcon: {
     marginRight: 8,
@@ -174,8 +143,14 @@ const styles = StyleSheet.create({
   patientList: {
     flex: 1,
     padding: 16,
-    marginBottom : 40,
-    marginTop : 20,
+    marginBottom: 40,
+    marginTop: 20,
+  },
+  noPatientsText: {
+    fontSize: 18,
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 20,
   },
   addPatientButton: {
     position: 'absolute',

@@ -12,10 +12,10 @@ const ProfileScreen = () => {
         source={{ uri: 'https://via.placeholder.com/150' }}
         style={styles.profileImage}
       />
-      <Text style={styles.name}>John Doe</Text>
-      <Text style={styles.email}>johndoe@example.com</Text>
+      <Text style={styles.name}>Idriss Chefai</Text>
+      <Text style={styles.email}>mail</Text>
       <Text style={styles.description}>
-        Update your profile information and manage your account settings here.
+        En cours de developpement
       </Text>
     </View>
   );

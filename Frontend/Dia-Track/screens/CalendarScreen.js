@@ -1,41 +1,73 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, FlatList, RefreshControl } from 'react-native'; // Ensure FlatList and RefreshControl are imported
 import { Calendar } from 'react-native-calendars';
 import Header from '../components/Header'; // Import the Header component
+import { getRendezVous } from "../services/rendezVousService";
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
-const CalendarScreen = () => {
+const CalendarScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState('');
   const [appointments, setAppointments] = useState({});
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newAppointment, setNewAppointment] = useState('');
+  const [allAppointments, setAllAppointments] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch appointments
+  const fetchAppointments = async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await getRendezVous();
+      const appointmentsData = response.data.reduce((acc, rendezVous) => {
+        const date = rendezVous.date.split('T')[0]; // Extract date part from ISO string
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(rendezVous);
+        return acc;
+      }, {});
+      setAppointments(appointmentsData);
+      setAllAppointments(response.data);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des rendez-vous:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Use useEffect to fetch appointments on component mount
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  // Use useFocusEffect to fetch appointments when the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchAppointments();
+      return () => {}; // Cleanup function
+    }, [])
+  );
 
   // Open modal to add appointment
   const openModal = (date) => {
     setSelectedDate(date);
-    setModalVisible(true);
-  };
-
-  // Add a new appointment
-  const addAppointment = () => {
-    if (newAppointment.trim() === '') return;
-    setAppointments((prevAppointments) => ({
-      ...prevAppointments,
-      [selectedDate]: [...(prevAppointments[selectedDate] || []), newAppointment],
-    }));
-    setNewAppointment('');
-    setModalVisible(false);
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={fetchAppointments}
+        />
+      }
+    >
       {/* Add the header component */}
-      <Header title="Your Calendar" />
+      <Header title="Votre Calendrier" />
 
       <Calendar
         style={styles.calendar}
         markedDates={{
           ...Object.keys(appointments).reduce((acc, date) => {
-            acc[date] = { marked: true };
+            acc[date] = { marked: true, dotColor: '#007bff' }; // Add colorful dots
             return acc;
           }, {}),
         }}
@@ -49,48 +81,21 @@ const CalendarScreen = () => {
       />
 
       <View style={styles.appointmentsContainer}>
-        <Text style={styles.subHeader}>Appointments for {selectedDate || 'Selected Date'}</Text>
+        <Text style={styles.subHeader}>Rendez-vous pour {selectedDate || 'Date sélectionnée'}</Text>
         {appointments[selectedDate]?.length > 0 ? (
           <FlatList
             data={appointments[selectedDate]}
             keyExtractor={(item, index) => `${selectedDate}-${index}`}
-            renderItem={({ item }) => <Text style={styles.appointmentItem}>{item}</Text>}
+            renderItem={({ item }) => (
+              <Text style={styles.appointmentItem}>
+                {item.address} à {item.heure}
+              </Text>
+            )}
           />
         ) : (
-          <Text style={styles.noAppointments}>No appointments for this day</Text>
+          <Text style={styles.noAppointments}>Aucun rendez-vous pour cette journée</Text>
         )}
       </View>
-
-      {/* Modal for adding appointments */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Appointment</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter appointment details"
-              value={newAppointment}
-              onChangeText={setNewAppointment}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.button} onPress={addAppointment}>
-                <Text style={styles.buttonText}>Add</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };
@@ -101,16 +106,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#e6f7fa',
     padding: 10,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007bff',
-    textAlign: 'center',
-    marginVertical: 10,
-  },
   calendar: {
     marginBottom: 20,
-    marginTop : 50,
+    marginTop: 50,
   },
   appointmentsContainer: {
     flex: 1,
@@ -139,52 +137,6 @@ const styles = StyleSheet.create({
     padding: 5,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  button: {
-    flex: 1,
-    backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: '#ff5252',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
 });
 
