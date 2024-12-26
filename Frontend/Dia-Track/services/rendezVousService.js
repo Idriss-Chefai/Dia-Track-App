@@ -3,7 +3,7 @@ import api from './api';
 export const getRendezVous = async () => {
   try {
     const response = await api.get('/rendez-vous');
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Erreur lors de la récupération des rendez-vous:', error);
     throw error;

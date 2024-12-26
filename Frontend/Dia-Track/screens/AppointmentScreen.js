@@ -35,7 +35,7 @@ const AppointmentScreen = ({ navigation }) => {
   const fetchAppointments = async () => {
     try {
       const response = await getRendezVous();
-      setRendezvous(response.data);
+      setRendezvous(response);
     } catch (error) {
       console.error('Erreur lors de la récupération des rendez-vous:', error);
       Alert.alert("Erreur", "Impossible de récupérer les rendez-vous");

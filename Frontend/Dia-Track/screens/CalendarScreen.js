@@ -17,14 +17,14 @@ const CalendarScreen = ({ navigation }) => {
     setIsRefreshing(true);
     try {
       const response = await getRendezVous();
-      const appointmentsData = response.data.reduce((acc, rendezVous) => {
+      const appointmentsData = response.reduce((acc, rendezVous) => {
         const date = rendezVous.date.split('T')[0]; // Extract date part from ISO string
         if (!acc[date]) acc[date] = [];
         acc[date].push(rendezVous);
         return acc;
       }, {});
       setAppointments(appointmentsData);
-      setAllAppointments(response.data);
+      setAllAppointments(response);
     } catch (error) {
       console.error('Erreur lors de la récupération des rendez-vous:', error);
     } finally {
